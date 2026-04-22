@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Stores: anyone can read active stores, only owner can write
+    match /stores/{storeId} {
+      allow read: if true;
+      allow update: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+      allow create, delete: if false; // Only via admin API
+
+      // Private billing data — server-only, no client access
+      match /private/{docId} {
+        allow read, write: if false;
+      }
+
+      // Billing history — server-only, no client access
+      match /billingHistory/{entryId} {
+        allow read, write: if false;
+      }
+    }
+
+    // Coupons: anyone can read active coupons, owner of parent store can write
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && exists(/databases/$(database)/documents/stores/$(request.resource.data.storeId))
+        && get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && exists(/databases/$(database)/documents/stores/$(resource.data.storeId))
+        && get(/databases/$(database)/documents/stores/$(resource.data.storeId)).data.ownerId == request.auth.uid;
+    }
+
+    // Admins: only admin can read their own doc
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // Only via Firebase console
+    }
+
+    // Stripe webhook event dedup — server-only, no client access
+    match /stripeEvents/{eventId} {
+      allow read, write: if false;
+    }
+  }
+}
