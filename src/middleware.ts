@@ -72,7 +72,9 @@ export function middleware(request: NextRequest) {
   // and cron (called by Vercel scheduler)
   const skipRateLimit =
     pathname === "/api/stripe/webhook" ||
-    pathname === "/api/cron/reset-status";
+    pathname === "/api/cron/daily" ||
+    pathname === "/api/cron/reset-status" ||
+    pathname === "/api/cron/sync-subscriptions";
 
   if (!skipRateLimit) {
     const ip = getClientIp(request);

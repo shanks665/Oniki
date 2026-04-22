@@ -10,7 +10,7 @@
 - **画像**: Firebase Storage
 - **決済**: Stripe (月額サブスクリプション)
 - **ホスティング**: Vercel
-- **自動リセット**: Vercel Cron Jobs (5分間隔)
+- **定期処理**: Vercel Cron（**1日1回** `/api/cron/daily` — Hobby プラン対応。営業時間外ステータス更新 + Stripe 同期）
 
 ## セットアップ
 
@@ -64,6 +64,12 @@ admins/{uid}
 ```bash
 npm run dev
 ```
+
+### 7. Vercel 本番（Cron）
+
+- 環境変数 **`CRON_SECRET`**（十分に長いランダム文字列）を設定する。Cron は **`GET /api/cron/daily`** に `Authorization: Bearer <CRON_SECRET>` が付与される想定（Vercel の Cron 設定に合わせて確認）。
+- **Hobby** は高頻度 Cron が使えないため、`vercel.json` は **1日1回（UTC 19:00 = 日本 翌04:00）** のみ。より細かいリセットが必要な場合は **Pro** か、外部スケジューラから **`/api/cron/reset-status`** を同様の Bearer で叩く。
+- 手動・デバッグ用に **`/api/cron/reset-status`** と **`/api/cron/sync-subscriptions`** も従来どおり利用可能。
 
 ## URL 構成
 
