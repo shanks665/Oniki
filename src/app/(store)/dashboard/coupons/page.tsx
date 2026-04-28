@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Ticket } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Ticket, Lock, Crown } from "lucide-react";
+import Link from "next/link";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useStoreAuth } from "@/hooks/useStoreAuth";
 import { useCoupons } from "@/hooks/useCoupons";
@@ -21,10 +22,7 @@ export default function CouponsPage() {
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/login");
-    if (!authLoading && store && store.plan !== "premium") {
-      router.replace("/dashboard");
-    }
-  }, [authLoading, user, store, router]);
+  }, [authLoading, user, router]);
 
   const handleCreate = async () => {
     if (!store || !newTitle.trim()) return;
@@ -64,6 +62,44 @@ export default function CouponsPage() {
         <p className="mb-3 text-[15px] font-bold text-red-400">店舗情報を取得できません</p>
         <p className="mb-4 text-[13px] text-zinc-500">{authError || "店舗が見つかりません"}</p>
         <button onClick={() => window.location.reload()} className="rounded-xl bg-zinc-800 px-6 py-2.5 text-[13px] text-zinc-300 hover:bg-zinc-700">再試行</button>
+      </div>
+    );
+  }
+
+  if (store.plan !== "premium") {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-6">
+        <button
+          onClick={() => router.back()}
+          className="mb-6 flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          ダッシュボードに戻る
+        </button>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.06] to-transparent px-6 py-14 text-center">
+          <div className="relative mb-5 inline-flex h-20 w-20 items-center justify-center">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 blur-xl" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.2)]">
+              <Lock className="h-7 w-7 text-amber-400" />
+            </div>
+          </div>
+          <h2 className="mb-2 text-[18px] font-extrabold text-zinc-100">
+            プレミアムプラン限定
+          </h2>
+          <p className="mb-1 text-[13px] text-zinc-400">
+            クーポン機能はプレミアムプランでのみご利用いただけます。
+          </p>
+          <p className="mb-8 text-[13px] text-zinc-500">
+            プランをアップグレードして、クーポンでお客様を集めましょう。
+          </p>
+          <Link
+            href="/dashboard/billing"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 px-6 py-3 text-[14px] font-bold text-zinc-900 shadow-lg shadow-amber-500/20 transition-all hover:shadow-amber-500/30"
+          >
+            <Crown className="h-4 w-4" />
+            プランを変更する
+          </Link>
+        </div>
       </div>
     );
   }
