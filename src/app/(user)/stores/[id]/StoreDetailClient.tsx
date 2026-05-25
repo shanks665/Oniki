@@ -46,8 +46,7 @@ export function StoreDetailClient({ initialStore, initialCoupons, storeId }: Pro
   const effectiveStatus = getEffectiveStatus(store);
   const stale = isStale(store.statusUpdatedAt);
   const relativeTime = getRelativeTime(store.statusUpdatedAt);
-  const displayImages =
-    store.plan === "premium" ? store.images : store.images.slice(0, 1);
+  const displayImages = store.images;
 
   return (
     <div className="pb-24">

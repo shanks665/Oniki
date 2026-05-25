@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
 export type TimestampLike = Timestamp | string | { seconds: number; nanoseconds: number } | any;
 
 export type StoreStatus = "available" | "slightly_crowded" | "full" | "closed";
-export type PlanType = "free" | "premium";
+export type PlanType = "premium";
 export type SubscriptionStatus =
   | "trialing"
   | "active"
@@ -79,13 +79,15 @@ export type AreaKey =
   | "kamitori"
   | "ginnan"
   | "shinshigai"
+  | "ginzadori"
+  | "kagamachi"
   | "other";
 
 export type GenreKey =
+  | "casual"
   | "authentic"
-  | "darts"
-  | "girls"
-  | "muscle"
-  | "apparel"
-  | "standing"
+  | "after"
+  | "music"
+  | "shisha"
+  | "sports"
   | "other";

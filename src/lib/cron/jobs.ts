@@ -47,7 +47,7 @@ export async function runResetStatusJob(): Promise<{
           const graceLimitMs = PAYMENT_GRACE_DAYS * 24 * 60 * 60 * 1000;
           if (now.getTime() - failedMs >= graceLimitMs) {
             batch.update(doc.ref, {
-              plan: "free",
+              isActive: false,
               subscriptionStatus: "canceled",
             });
             await setBilling(doc.id, { paymentFailedAt: null });
@@ -137,7 +137,7 @@ export async function runSyncSubscriptionsJob(): Promise<{
       const needsUpdate: Record<string, unknown> = {};
 
       if (sub.status === "canceled" || sub.status === "unpaid") {
-        if (store.plan !== "free") needsUpdate.plan = "free";
+        if (store.isActive !== false) needsUpdate.isActive = false;
         if (store.subscriptionStatus !== "canceled")
           needsUpdate.subscriptionStatus = "canceled";
       } else if (sub.status === "active") {

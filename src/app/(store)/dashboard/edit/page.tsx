@@ -5,15 +5,13 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Save,
-  Upload,
   X,
   ImagePlus,
-  AlertTriangle,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useStoreAuth } from "@/hooks/useStoreAuth";
 import { uploadStoreImage, deleteStoreImage } from "@/lib/firebase/storage";
-import { AREAS, GENRES, MAX_FREE_IMAGES, MAX_PREMIUM_IMAGES } from "@/constants";
+import { AREAS, GENRES, MAX_IMAGES } from "@/constants";
 import { cn } from "@/lib/utils";
 import type { AreaKey, GenreKey } from "@/types";
 
@@ -75,7 +73,7 @@ export default function EditPage() {
     setTableTotal(store.seatCapacity?.tableTotal ?? 0);
   }, [store]);
 
-  const maxImages = store?.plan === "premium" ? MAX_PREMIUM_IMAGES : MAX_FREE_IMAGES;
+  const maxImages = MAX_IMAGES;
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!store || !e.target.files?.length) return;
@@ -199,12 +197,9 @@ export default function EditPage() {
             onChange={handleImageUpload}
             className="hidden"
           />
-          {store.plan === "free" && (
-            <p className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
-              <AlertTriangle className="h-3 w-3" />
-              無料プランは1枚まで。プレミアムなら最大{MAX_PREMIUM_IMAGES}枚
-            </p>
-          )}
+          <p className="mt-2 text-xs text-zinc-500">
+            写真は最大{MAX_IMAGES}枚まで設定できます
+          </p>
         </Section>
 
         {/* Basic info */}

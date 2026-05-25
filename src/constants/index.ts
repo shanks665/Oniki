@@ -1,20 +1,22 @@
 import { AreaKey, GenreKey, StoreStatus } from "@/types";
 
 export const AREAS: Record<AreaKey, string> = {
-  shimotori: "下通",
-  kamitori: "上通",
-  ginnan: "銀杏北通り",
+  shimotori: "下通り",
+  kamitori: "上通り",
+  ginnan: "銀杏通り",
   shinshigai: "新市街",
+  ginzadori: "銀座通り",
+  kagamachi: "駕町通り",
   other: "その他",
 };
 
 export const GENRES: Record<GenreKey, string> = {
-  authentic: "オーセンティック",
-  darts: "ダーツバー",
-  girls: "ガールズバー",
-  muscle: "マッスルバー",
-  apparel: "アパレル×バー",
-  standing: "立ち飲み",
+  casual: "カジュアルバー",
+  authentic: "オーセンティックバー",
+  after: "アフターバー",
+  music: "ミュージックバー",
+  shisha: "シーシャバー",
+  sports: "スポーツバー",
   other: "その他",
 };
 
@@ -48,9 +50,8 @@ export const STATUS_CONFIG: Record<
   },
 };
 
-export const PLAN_PRICE = 3000;
+export const PLAN_PRICE = 5000;
 export const PLAN_TRIAL_DAYS = 30;
 export const PAYMENT_GRACE_DAYS = 7;
 export const STALE_THRESHOLD_MINUTES = 60;
-export const MAX_FREE_IMAGES = 1;
-export const MAX_PREMIUM_IMAGES = 5;
+export const MAX_IMAGES = 6;

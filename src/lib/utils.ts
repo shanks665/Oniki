@@ -71,9 +71,6 @@ export function getEffectiveStatus(store: Store): Store["status"] {
 
 export function sortStores(stores: Store[]): Store[] {
   return [...stores].sort((a, b) => {
-    if (a.plan === "premium" && b.plan !== "premium") return -1;
-    if (a.plan !== "premium" && b.plan === "premium") return 1;
-
     const statusOrder = { available: 0, slightly_crowded: 1, full: 2, closed: 3 };
     const aStatus = getEffectiveStatus(a);
     const bStatus = getEffectiveStatus(b);

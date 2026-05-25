@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid fields" }, { status: 400 });
     }
 
-    if (sanitized.plan !== undefined && sanitized.plan !== "free" && sanitized.plan !== "premium") {
+    if (sanitized.plan !== undefined && sanitized.plan !== "premium") {
       return NextResponse.json({ error: "Invalid plan value" }, { status: 400 });
     }
 

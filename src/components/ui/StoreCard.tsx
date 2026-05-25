@@ -118,7 +118,7 @@ export function StoreCard({
             </div>
           )}
 
-          {activeCoupons.length > 0 && store.plan === "premium" && (
+          {activeCoupons.length > 0 && (
             <div className="mt-2">
               {activeCoupons.slice(0, 1).map((coupon) => (
                 <span

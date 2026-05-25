@@ -65,13 +65,6 @@ export default function AdminDashboard() {
     };
   }, [user, authLoading, router]);
 
-  const handleTogglePlan = useCallback(async (storeId: string, currentPlan: string) => {
-    if (!user) return;
-    const token = await user.getIdToken();
-    const newPlan = currentPlan === "premium" ? "free" : "premium";
-    const ok = await adminUpdateStore(token, storeId, { plan: newPlan });
-    if (!ok) alert("プラン変更に失敗しました");
-  }, [user]);
 
   const handleToggleActive = useCallback(async (storeId: string, currentActive: boolean) => {
     if (!user) return;
@@ -83,7 +76,6 @@ export default function AdminDashboard() {
   if (authLoading || loading || !isAdmin)
     return <LoadingSpinner className="min-h-screen" />;
 
-  const premiumCount = stores.filter((s) => s.plan === "premium").length;
   const activeCount = stores.filter((s) => s.isActive).length;
 
   return (
@@ -99,15 +91,6 @@ export default function AdminDashboard() {
           </div>
           <p className="mt-1 text-2xl font-bold text-zinc-100">
             {stores.length}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-          <div className="flex items-center gap-2 text-zinc-500">
-            <Crown className="h-4 w-4 text-amber-500" />
-            <span className="text-xs">プレミアム</span>
-          </div>
-          <p className="mt-1 text-2xl font-bold text-amber-400">
-            {premiumCount}
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
@@ -150,19 +133,6 @@ export default function AdminDashboard() {
             </div>
 
             <div className="mt-3 flex items-center gap-2">
-              <button
-                onClick={() => handleTogglePlan(store.id, store.plan)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                  store.plan === "premium"
-                    ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                )}
-              >
-                {store.plan === "premium"
-                  ? "→ フリーに変更"
-                  : "→ プレミアムに変更"}
-              </button>
               <button
                 onClick={() => handleToggleActive(store.id, store.isActive)}
                 className={cn(

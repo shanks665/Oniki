@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       seatCapacity: null,
       seatDetail: null,
       statusUpdatedAt: null,
-      plan: "free",
+      plan: "premium",
       subscriptionStatus: null,
       ownerId: userRecord.uid,
       isActive: true,

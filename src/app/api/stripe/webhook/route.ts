@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
         const storeId = subscription.metadata?.storeId;
         if (storeId) {
           batch.update(storeRef(storeId), {
-            plan: "free",
+            isActive: false,
             subscriptionStatus: "canceled",
           });
           batch.set(billingRef(storeId), {
