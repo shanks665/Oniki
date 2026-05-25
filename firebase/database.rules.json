@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "presence": {
+      "$storeId": {
+        ".read": true,
+        "$sessionId": {
+          ".write": "newData.val() === null || (newData.hasChild('connectedAt') && newData.numChildren() === 1)",
+          ".validate": "newData.val() === null || newData.hasChild('connectedAt')"
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

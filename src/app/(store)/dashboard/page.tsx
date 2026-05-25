@@ -15,6 +15,7 @@ import {
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useStoreAuth } from "@/hooks/useStoreAuth";
+import { useViewerCount } from "@/hooks/useViewerCount";
 import { signOut } from "@/lib/firebase/auth";
 import { STATUS_CONFIG } from "@/constants";
 import { cn, getRelativeTime } from "@/lib/utils";
@@ -36,6 +37,7 @@ async function apiUpdateStatus(user: { getIdToken: () => Promise<string> }, stor
 export default function DashboardPage() {
   const router = useRouter();
   const { user, store, loading: authLoading, error: authError, refresh } = useStoreAuth();
+  const viewerCount = useViewerCount(store?.id ?? "");
   const [updating, setUpdating] = useState(false);
   const [seatDetail, setSeatDetail] = useState<SeatDetail>({
     counterAvailable: null,
@@ -208,8 +210,19 @@ export default function DashboardPage() {
             <p className="mb-1.5 text-[15px] font-bold text-zinc-100">{store.name}</p>
             <StatusBadge status={store.status} size="md" />
           </div>
-          <div className="text-right text-[11px] text-zinc-600">
-            {getRelativeTime(store.statusUpdatedAt)}
+          <div className="text-right">
+            {viewerCount > 0 && (
+              <div className="mb-1 flex items-center justify-end gap-1 text-[11px] font-medium text-emerald-400">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                {viewerCount}人が閲覧中
+              </div>
+            )}
+            <div className="text-[11px] text-zinc-600">
+              {getRelativeTime(store.statusUpdatedAt)}
+            </div>
           </div>
         </div>
       </div>

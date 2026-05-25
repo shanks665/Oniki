@@ -48,18 +48,31 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace("/admin/login");
-      return;
     }
-    if (!user) return;
+  }, [authLoading, user, router]);
+
+  const uid = user?.uid;
+
+  useEffect(() => {
+    if (!uid) return;
 
     const fdb = getClientDb();
-    const adminUnsub = onSnapshot(doc(fdb, "admins", user.uid), (snap) => {
-      if (snap.exists()) {
-        setIsAdmin(true);
-      } else {
-        router.replace("/admin/login");
+    const adminUnsub = onSnapshot(
+      doc(fdb, "admins", uid),
+      (snap) => {
+        if (snap.exists()) {
+          setIsAdmin(true);
+        } else {
+          // Not an admin: send to login. We do this only on a definitive
+          // (non-error) snapshot so a transient permission/network error
+          // doesn't kick a logged-in admin off the page.
+          router.replace("/admin/login");
+        }
+      },
+      (err) => {
+        console.error("admin snapshot error:", err);
       }
-    });
+    );
 
     const storesUnsub = onSnapshot(
       query(collection(fdb, "stores")),
@@ -68,6 +81,10 @@ export default function AdminDashboard() {
           (d) => ({ id: d.id, ...d.data() }) as Store
         );
         setStores(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("stores snapshot error:", err);
         setLoading(false);
       }
     );
@@ -84,6 +101,9 @@ export default function AdminDashboard() {
           (d) => ({ id: d.id, ...d.data() }) as Review
         );
         setReportedReviews(data);
+      },
+      (err) => {
+        console.error("reviews snapshot error:", err);
       }
     );
 
@@ -92,7 +112,7 @@ export default function AdminDashboard() {
       storesUnsub();
       reviewsUnsub();
     };
-  }, [user, authLoading, router]);
+  }, [uid, router]);
 
   const handleToggleActive = useCallback(async (storeId: string, currentActive: boolean) => {
     if (!user) return;

@@ -20,6 +20,7 @@ import { ReviewSection } from "@/components/ui/ReviewSection";
 import { useStore } from "@/hooks/useStores";
 import { useActiveCoupons } from "@/hooks/useCoupons";
 import { useFavorites } from "@/hooks/useFavorites";
+import { usePresence } from "@/hooks/usePresence";
 import { AREAS, GENRES } from "@/constants";
 import {
   cn,
@@ -44,6 +45,9 @@ export function StoreDetailClient({ initialStore, initialCoupons, initialReviews
 
   const store = liveStore ?? initialStore;
   const coupons = liveCoupons.length > 0 ? liveCoupons : initialCoupons;
+
+  // Register this tab as an active viewer in Realtime Database
+  usePresence(storeId);
 
   const effectiveStatus = getEffectiveStatus(store);
   const stale = isStale(store.statusUpdatedAt);
