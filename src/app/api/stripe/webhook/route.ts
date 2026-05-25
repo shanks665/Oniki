@@ -81,12 +81,14 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const storeId = session.metadata?.storeId;
+        const tier = (session.metadata?.tier === "priority") ? "priority" : "premium";
         if (storeId && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
           );
           batch.update(storeRef(storeId), {
-            plan: "premium",
+            plan: tier,
+            isActive: true,
             subscriptionStatus: subscription.status,
           });
           batch.set(billingRef(storeId), {
@@ -109,12 +111,14 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const storeId = subscription.metadata?.storeId;
+        const updatedTier = (subscription.metadata?.tier === "priority") ? "priority" : "premium";
         if (storeId) {
           const storeUpdates: Record<string, unknown> = {
             subscriptionStatus: subscription.status,
           };
-          if (subscription.status === "active" || subscription.status === "past_due") {
-            storeUpdates.plan = "premium";
+          if (subscription.status === "active" || subscription.status === "trialing") {
+            storeUpdates.plan = updatedTier;
+            storeUpdates.isActive = true;
           }
           batch.update(storeRef(storeId), storeUpdates);
           if (subscription.status === "active") {

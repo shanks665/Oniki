@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
 export type TimestampLike = Timestamp | string | { seconds: number; nanoseconds: number } | any;
 
 export type StoreStatus = "available" | "slightly_crowded" | "full" | "closed";
-export type PlanType = "premium";
+export type PlanType = "premium" | "priority";
 export type SubscriptionStatus =
   | "trialing"
   | "active"

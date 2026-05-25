@@ -51,6 +51,7 @@ export const STATUS_CONFIG: Record<
 };
 
 export const PLAN_PRICE = 5000;
+export const PLAN_PRICE_PRIORITY = 10000;
 export const PLAN_TRIAL_DAYS = 30;
 export const PAYMENT_GRACE_DAYS = 7;
 export const STALE_THRESHOLD_MINUTES = 60;

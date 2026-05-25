@@ -70,7 +70,12 @@ export function getEffectiveStatus(store: Store): Store["status"] {
 }
 
 export function sortStores(stores: Store[]): Store[] {
+  const planOrder = { priority: 0, premium: 1 };
   return [...stores].sort((a, b) => {
+    const planA = planOrder[a.plan as keyof typeof planOrder] ?? 2;
+    const planB = planOrder[b.plan as keyof typeof planOrder] ?? 2;
+    if (planA !== planB) return planA - planB;
+
     const statusOrder = { available: 0, slightly_crowded: 1, full: 2, closed: 3 };
     const aStatus = getEffectiveStatus(a);
     const bStatus = getEffectiveStatus(b);

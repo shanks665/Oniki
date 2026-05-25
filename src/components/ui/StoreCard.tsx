@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Heart, Crown, Ticket, MapPin, ChevronRight, Armchair } from "lucide-react";
+import { Clock, Heart, Crown, Zap, Ticket, MapPin, ChevronRight, Armchair } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { AREAS, GENRES } from "@/constants";
 import { cn, getRelativeTime, isStale, getEffectiveStatus } from "@/lib/utils";
@@ -31,6 +31,9 @@ export function StoreCard({
       href={`/stores/${store.id}`}
       className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-white/[0.01] backdrop-blur-md transition-all duration-300 hover:border-white/[0.1] hover:from-white/[0.06] hover:to-white/[0.02] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]"
     >
+      {store.plan === "priority" && (
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/60 to-transparent" />
+      )}
       {store.plan === "premium" && (
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
       )}
@@ -55,6 +58,12 @@ export function StoreCard({
             </div>
           )}
 
+          {store.plan === "priority" && (
+            <div className="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-violet-500/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-violet-500/20">
+              <Zap className="h-2.5 w-2.5" />
+              TOP
+            </div>
+          )}
           {store.plan === "premium" && (
             <div className="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-amber-500/90 px-1.5 py-0.5 text-[10px] font-bold text-zinc-900 shadow-lg shadow-amber-500/20">
               <Crown className="h-2.5 w-2.5" />

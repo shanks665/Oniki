@@ -12,10 +12,14 @@ export async function POST(req: NextRequest) {
     const authResult = await verifyAuth(req);
     if ("error" in authResult) return authResult.error;
 
-    const { storeId } = await req.json();
+    const { storeId, tier = "premium" } = await req.json();
 
     if (!storeId) {
       return NextResponse.json({ error: "storeId is required" }, { status: 400 });
+    }
+
+    if (tier !== "premium" && tier !== "priority") {
+      return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
     }
 
     const adminDb = getAdminDb();
@@ -30,9 +34,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (store.plan === "premium" && store.subscriptionStatus !== "canceled") {
+    if (
+      (store.plan === tier) &&
+      store.subscriptionStatus !== "canceled" &&
+      store.isActive !== false
+    ) {
       return NextResponse.json(
-        { error: "既にプレミアムプランに加入中です" },
+        { error: "既にこのプランに加入中です" },
         { status: 400 }
       );
     }
@@ -58,7 +66,11 @@ export async function POST(req: NextRequest) {
       await setBilling(storeId, { stripeCustomerId: customerId });
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID;
+    const priceId =
+      tier === "priority"
+        ? process.env.STRIPE_PRICE_ID_PRIORITY
+        : process.env.STRIPE_PRICE_ID;
+
     if (!priceId) {
       return NextResponse.json(
         { error: "Stripe price not configured" },
@@ -77,11 +89,11 @@ export async function POST(req: NextRequest) {
       customer_update: { address: "auto" },
       subscription_data: {
         ...(trialDays ? { trial_period_days: trialDays } : {}),
-        metadata: { storeId },
+        metadata: { storeId, tier },
       },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?canceled=true`,
-      metadata: { storeId },
+      metadata: { storeId, tier },
     });
 
     return NextResponse.json({ url: session.url });
