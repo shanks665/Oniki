@@ -9,14 +9,17 @@ import {
   onSnapshot,
   query,
   where,
+  orderBy,
+  limit,
   Timestamp,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getClientDb } from "./config";
-import type { Store, Coupon, StoreStatus, SeatDetail } from "@/types";
+import type { Store, Coupon, Review, StoreStatus, SeatDetail } from "@/types";
 
 const STORES_COLLECTION = "stores";
 const COUPONS_COLLECTION = "coupons";
+const REVIEWS_COLLECTION = "reviews";
 
 export function subscribeToStores(
   callback: (stores: Store[]) => void,
@@ -170,4 +173,27 @@ export async function toggleCoupon(
 
 export async function deleteCoupon(couponId: string): Promise<void> {
   await deleteDoc(doc(getClientDb(), COUPONS_COLLECTION, couponId));
+}
+
+export function subscribeToReviews(
+  storeId: string,
+  callback: (reviews: Review[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const q = query(
+    collection(getClientDb(), REVIEWS_COLLECTION),
+    where("storeId", "==", storeId),
+    where("status", "==", "published"),
+    orderBy("createdAt", "desc"),
+    limit(50)
+  );
+  return onSnapshot(q, (snapshot) => {
+    const reviews = snapshot.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as Review
+    );
+    callback(reviews);
+  }, (err) => {
+    console.error("subscribeToReviews error:", err);
+    onError?.(err);
+  });
 }

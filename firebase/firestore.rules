@@ -41,5 +41,11 @@ service cloud.firestore {
     match /stripeEvents/{eventId} {
       allow read, write: if false;
     }
+
+    // Reviews: anyone can read published reviews; writes go through API only
+    match /reviews/{reviewId} {
+      allow read: if resource.data.status == "published";
+      allow write: if false;
+    }
   }
 }

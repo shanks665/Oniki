@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getStoreById, getActiveCouponsForStore } from "@/lib/firebase/server-firestore";
+import { getStoreById, getActiveCouponsForStore, getReviewsForStore } from "@/lib/firebase/server-firestore";
 import { AREAS, GENRES } from "@/constants";
 import type { AreaKey, GenreKey } from "@/types";
 import { StoreDetailClient } from "./StoreDetailClient";
@@ -55,9 +55,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function StoreDetailPage({ params }: Props) {
   const { id } = await params;
-  const [store, coupons] = await Promise.all([
+  const [store, coupons, reviews] = await Promise.all([
     getStoreById(id),
     getActiveCouponsForStore(id),
+    getReviewsForStore(id),
   ]);
 
   if (!store) notFound();
@@ -92,6 +93,7 @@ export default async function StoreDetailPage({ params }: Props) {
       <StoreDetailClient
         initialStore={store}
         initialCoupons={coupons}
+        initialReviews={reviews}
         storeId={id}
       />
     </>

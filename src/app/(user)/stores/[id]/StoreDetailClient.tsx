@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { ImageSlider } from "@/components/ui/ImageSlider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ReviewSection } from "@/components/ui/ReviewSection";
 import { useStore } from "@/hooks/useStores";
 import { useActiveCoupons } from "@/hooks/useCoupons";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -26,15 +27,16 @@ import {
   isStale,
   getEffectiveStatus,
 } from "@/lib/utils";
-import type { Store, Coupon, AreaKey, GenreKey } from "@/types";
+import type { Store, Coupon, Review, AreaKey, GenreKey } from "@/types";
 
 interface Props {
   initialStore: Store;
   initialCoupons: Coupon[];
+  initialReviews: Review[];
   storeId: string;
 }
 
-export function StoreDetailClient({ initialStore, initialCoupons, storeId }: Props) {
+export function StoreDetailClient({ initialStore, initialCoupons, initialReviews, storeId }: Props) {
   const router = useRouter();
   const { store: liveStore } = useStore(storeId);
   const { coupons: liveCoupons } = useActiveCoupons(storeId);
@@ -206,6 +208,9 @@ export function StoreDetailClient({ initialStore, initialCoupons, storeId }: Pro
             isLast
           />
         </div>
+
+        {/* Reviews */}
+        <ReviewSection storeId={storeId} initialReviews={initialReviews} />
 
         {/* Google Maps embed */}
         {store.googleMapsEmbedUrl && (

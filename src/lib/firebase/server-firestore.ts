@@ -1,5 +1,5 @@
 import { getAdminDb } from "./admin";
-import type { Store, Coupon } from "@/types";
+import type { Store, Coupon, Review } from "@/types";
 
 function serializeTimestamp(val: unknown): string | null {
   if (!val) return null;
@@ -78,6 +78,45 @@ export async function getAllActiveCoupons(): Promise<Record<string, Coupon[]>> {
     map[coupon.storeId].push(coupon);
   }
   return map;
+}
+
+export async function getReviewsForStore(storeId: string): Promise<Review[]> {
+  const db = getAdminDb();
+  const snapshot = await db
+    .collection("reviews")
+    .where("storeId", "==", storeId)
+    .where("status", "==", "published")
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .get();
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: serializeTimestamp(data.createdAt) ?? new Date().toISOString(),
+    } as Review;
+  });
+}
+
+export async function getReportedReviews(): Promise<Review[]> {
+  const db = getAdminDb();
+  const snapshot = await db
+    .collection("reviews")
+    .where("status", "==", "published")
+    .where("reportCount", ">", 0)
+    .orderBy("reportCount", "desc")
+    .orderBy("createdAt", "desc")
+    .limit(100)
+    .get();
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: serializeTimestamp(data.createdAt) ?? new Date().toISOString(),
+    } as Review;
+  });
 }
 
 export async function getAllActiveStoreIds(): Promise<string[]> {

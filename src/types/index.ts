@@ -74,6 +74,19 @@ export interface Admin {
   createdAt: TimestampLike;
 }
 
+export type ReviewStatus = "published" | "removed";
+
+export interface Review {
+  id: string;
+  storeId: string;
+  authorName: string;
+  rating: number;
+  body: string;
+  status: ReviewStatus;
+  reportCount: number;
+  createdAt: TimestampLike;
+}
+
 export type AreaKey =
   | "shimotori"
   | "kamitori"
