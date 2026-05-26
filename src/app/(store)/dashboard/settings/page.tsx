@@ -53,6 +53,7 @@ export default function SettingsPage() {
   };
 
   if (authLoading) return <LoadingSpinner className="min-h-screen" />;
+  if (!user) return <LoadingSpinner className="min-h-screen" />;
   if (authError || !store) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Heart, Crown, Zap, Ticket, MapPin, ChevronRight, Armchair } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, Heart, Zap, Ticket, MapPin, ChevronRight, Armchair } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { AREAS, GENRES } from "@/constants";
 import { cn, getRelativeTime, isStale, getEffectiveStatus } from "@/lib/utils";
@@ -22,7 +23,21 @@ export function StoreCard({
   onToggleFavorite,
   activeCoupons = [],
 }: StoreCardProps) {
-  const effectiveStatus = getEffectiveStatus(store);
+  // Use raw status during SSR; switch to business-hours-aware status after mount
+  // to prevent hydration mismatches caused by time-zone differences between
+  // the server render and the client.
+  const [effectiveStatus, setEffectiveStatus] = useState(store.status);
+
+  useEffect(() => {
+    setEffectiveStatus(getEffectiveStatus(store));
+    // Re-evaluate every minute so the card reacts to opening/closing times.
+    const timer = setInterval(
+      () => setEffectiveStatus(getEffectiveStatus(store)),
+      60_000
+    );
+    return () => clearInterval(timer);
+  }, [store]);
+
   const stale = isStale(store.statusUpdatedAt);
   const relativeTime = getRelativeTime(store.statusUpdatedAt);
 
@@ -33,9 +48,6 @@ export function StoreCard({
     >
       {store.plan === "priority" && (
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/60 to-transparent" />
-      )}
-      {store.plan === "premium" && (
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
       )}
 
       <div className="flex gap-0">
@@ -64,12 +76,6 @@ export function StoreCard({
               TOP
             </div>
           )}
-          {store.plan === "premium" && (
-            <div className="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-amber-500/90 px-1.5 py-0.5 text-[10px] font-bold text-zinc-900 shadow-lg shadow-amber-500/20">
-              <Crown className="h-2.5 w-2.5" />
-              PR
-            </div>
-          )}
         </div>
 
         {/* Content area */}
@@ -78,6 +84,7 @@ export function StoreCard({
             <div className="mb-2 flex items-center justify-between gap-2">
               <StatusBadge status={effectiveStatus} size="sm" />
               <div
+                suppressHydrationWarning
                 className={cn(
                   "flex items-center gap-1 text-[10px]",
                   stale ? "text-zinc-600" : "text-zinc-500"

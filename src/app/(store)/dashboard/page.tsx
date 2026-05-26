@@ -48,6 +48,19 @@ export default function DashboardPage() {
     if (!authLoading && !user) router.replace("/login");
   }, [authLoading, user, router]);
 
+  // If auth is resolved, user is present, but no store found and no error →
+  // the account is stale (e.g. store was deleted after a re-seed). Sign out
+  // and redirect to login. A small delay prevents mis-firing on the brief
+  // null→user transition that can occur when Firebase restores from IndexedDB.
+  useEffect(() => {
+    if (authLoading || !user || store || authError) return;
+    const t = setTimeout(() => {
+      // Re-check inside the timeout in case state changed while waiting
+      signOut().then(() => router.replace("/login"));
+    }, 500);
+    return () => clearTimeout(t);
+  }, [authLoading, user, store, authError, router]);
+
   useEffect(() => {
     if (store?.seatDetail && store?.seatCapacity) {
       setSeatDetail({
@@ -100,6 +113,9 @@ export default function DashboardPage() {
   };
 
   if (authLoading) return <LoadingSpinner className="min-h-screen" />;
+  // No user → the redirect to /login is already in flight. Show a spinner
+  // instead of an error UI so it doesn't briefly flash on first paint.
+  if (!user) return <LoadingSpinner className="min-h-screen" />;
   if (authError || !store) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
@@ -220,7 +236,7 @@ export default function DashboardPage() {
                 {viewerCount}人が閲覧中
               </div>
             )}
-            <div className="text-[11px] text-zinc-600">
+            <div suppressHydrationWarning className="text-[11px] text-zinc-600">
               {getRelativeTime(store.statusUpdatedAt)}
             </div>
           </div>

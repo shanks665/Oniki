@@ -56,9 +56,10 @@ async function fetchMyStore(user: User): Promise<Store | null> {
 export function StoreAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [store, setStore] = useState<Store | null>(null);
-  // Loading is true until the first auth state is known. Once we have a user,
-  // we fetch the store in the background; we should NOT block the UI on the
-  // store fetch (or transient fetch failures will look like "logged out").
+  // Loading is true until the first auth state is known AND, if a user is
+  // present, the store fetch has finished. This prevents pages from briefly
+  // observing a (loading=false, user=null) state during the IndexedDB restore
+  // window, or a (loading=false, user!=null, store=null) state right after.
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const userRef = useRef<User | null>(null);
@@ -85,19 +86,28 @@ export function StoreAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const unsubscribe = onAuthChange(async (u) => {
+      // Always set the user immediately so consumers see the latest auth state.
       setUser(u);
       userRef.current = u;
       if (u) {
+        // Keep loading=true until the store fetch finishes so pages never see
+        // the transient state of (user!=null, store=null, loading=false).
+        setLoading(true);
         await loadStore(u);
+        if (!cancelled) setLoading(false);
       } else {
         hasLoadedStoreRef.current = false;
         setStore(null);
         setError(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
-    return unsubscribe;
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [loadStore]);
 
   const refresh = useCallback(async () => {

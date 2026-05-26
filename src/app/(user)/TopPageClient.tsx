@@ -20,6 +20,12 @@ export function TopPageClient({ initialStores, initialCouponMap }: TopPageClient
   const { stores: liveStores, loading } = useStores();
   const { isFavorite, toggleFavorite, favorites } = useFavorites();
   const [hasReceivedLive, setHasReceivedLive] = useState(false);
+  // Prevent status-dependent sort from running during SSR (causes hydration mismatch).
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (liveStores.length > 0 || (!loading && liveStores.length === 0)) {
@@ -76,8 +82,9 @@ export function TopPageClient({ initialStores, initialCouponMap }: TopPageClient
       });
     }
 
-    return sortStores(result);
-  }, [stores, selectedAreas, selectedGenres, hideFullStores, showFavoritesOnly, favorites]);
+    // Apply full status-based sort only after client mount to avoid SSR mismatch.
+    return isMounted ? sortStores(result) : result;
+  }, [stores, selectedAreas, selectedGenres, hideFullStores, showFavoritesOnly, favorites, isMounted]);
 
   return (
     <>

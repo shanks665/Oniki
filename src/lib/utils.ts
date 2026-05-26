@@ -31,9 +31,24 @@ export function isStale(timestamp: unknown): boolean {
   return (Date.now() - ms) / 60000 >= STALE_THRESHOLD_MINUTES;
 }
 
+/**
+ * Return hours, minutes, and day-of-week in JST (UTC+9), regardless of the
+ * timezone the JS engine is running in (browser or Node server).
+ * We shift the UTC timestamp by +9 h and then read UTC accessors so the
+ * result is always Japan time.
+ */
+function getNowJST(): { hours: number; minutes: number; day: number } {
+  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return {
+    hours: jst.getUTCHours(),
+    minutes: jst.getUTCMinutes(),
+    day: jst.getUTCDay(),
+  };
+}
+
 export function isWithinBusinessHours(bh: BusinessHours): boolean {
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const { hours, minutes } = getNowJST();
+  const currentMinutes = hours * 60 + minutes;
 
   const [openH, openM] = bh.open.split(":").map(Number);
   const [closeH, closeM] = bh.close.split(":").map(Number);
@@ -55,7 +70,7 @@ export function isWithinBusinessHours(bh: BusinessHours): boolean {
 
 export function isTodayHoliday(bh: BusinessHours): boolean {
   const days = ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"];
-  const today = days[new Date().getDay()];
+  const today = days[getNowJST().day];
   return bh.holidays.includes(today);
 }
 

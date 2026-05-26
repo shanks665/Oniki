@@ -139,6 +139,7 @@ export default function EditPage() {
   const dayOptions = ["月曜", "火曜", "水曜", "木曜", "金曜", "土曜", "日曜"];
 
   if (authLoading) return <LoadingSpinner className="min-h-screen" />;
+  if (!user) return <LoadingSpinner className="min-h-screen" />;
   if (authError || !store) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">

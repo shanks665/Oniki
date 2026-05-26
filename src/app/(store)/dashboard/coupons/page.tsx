@@ -55,6 +55,7 @@ export default function CouponsPage() {
 
   if (authLoading || (!authError && !store))
     return <LoadingSpinner className="min-h-screen" />;
+  if (!user) return <LoadingSpinner className="min-h-screen" />;
   if (authError || !store) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">

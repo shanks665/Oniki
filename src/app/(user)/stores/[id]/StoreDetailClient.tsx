@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -49,7 +50,17 @@ export function StoreDetailClient({ initialStore, initialCoupons, initialReviews
   // Register this tab as an active viewer in Realtime Database
   usePresence(storeId);
 
-  const effectiveStatus = getEffectiveStatus(store);
+  // Use raw status during SSR; apply business-hours logic after mount only
+  const [effectiveStatus, setEffectiveStatus] = useState(store.status);
+  useEffect(() => {
+    setEffectiveStatus(getEffectiveStatus(store));
+    const timer = setInterval(
+      () => setEffectiveStatus(getEffectiveStatus(store)),
+      60_000
+    );
+    return () => clearInterval(timer);
+  }, [store]);
+
   const stale = isStale(store.statusUpdatedAt);
   const relativeTime = getRelativeTime(store.statusUpdatedAt);
   const displayImages = store.images;
@@ -90,6 +101,7 @@ export function StoreDetailClient({ initialStore, initialCoupons, initialReviews
           <div className="flex items-center justify-between">
             <StatusBadge status={effectiveStatus} size="lg" />
             <span
+              suppressHydrationWarning
               className={cn(
                 "flex items-center gap-1.5 text-[11px]",
                 stale ? "text-zinc-700" : "text-zinc-500"
@@ -135,7 +147,7 @@ export function StoreDetailClient({ initialStore, initialCoupons, initialReviews
         </div>
 
         {/* Coupons */}
-        {coupons.length > 0 && store.plan === "premium" && (
+        {coupons.length > 0 && (
           <div className="mt-4 overflow-hidden rounded-2xl border border-amber-500/15 bg-gradient-to-br from-amber-500/[0.06] to-transparent p-4">
             <div className="mb-2.5 flex items-center gap-2 text-[13px] font-bold text-amber-400">
               <Ticket className="h-4 w-4" />

@@ -95,7 +95,7 @@ function ReviewCard({ review }: { review: Review }) {
           <StarRating value={review.rating} readonly size="sm" />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-zinc-600">
+          <span suppressHydrationWarning className="text-[10px] text-zinc-600">
             {getRelativeTime(review.createdAt)}
           </span>
           <button

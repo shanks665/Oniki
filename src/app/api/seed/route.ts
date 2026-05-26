@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
 import { setBilling } from "@/lib/firebase/billing";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, type Firestore } from "firebase-admin/firestore";
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +122,19 @@ const DUMMY_COUPONS = [
   { title: "雨の日サービス：おつまみ1品無料", description: "" },
 ];
 
+async function deleteCollection(
+  db: Firestore,
+  collectionPath: string,
+) {
+  const snap = await db.collection(collectionPath).get();
+  const batchSize = 400;
+  for (let i = 0; i < snap.docs.length; i += batchSize) {
+    const batch = db.batch();
+    snap.docs.slice(i, i + batchSize).forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+}
+
 export async function GET() {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not available in production" }, { status: 403 });
@@ -130,6 +143,23 @@ export async function GET() {
   try {
     const adminAuth = getAdminAuth();
     const adminDb = getAdminDb();
+
+    // ── 既存データを全消去 ──────────────────────────────
+    // Firestore コレクション
+    await deleteCollection(adminDb, "stores");
+    await deleteCollection(adminDb, "coupons");
+    await deleteCollection(adminDb, "reviews");
+    await deleteCollection(adminDb, "billing");
+
+    // demo.bar ドメインの Auth ユーザを削除
+    const listResult = await adminAuth.listUsers();
+    const demoUids = listResult.users
+      .filter((u) => u.email?.endsWith("@demo.bar"))
+      .map((u) => u.uid);
+    if (demoUids.length > 0) {
+      await adminAuth.deleteUsers(demoUids);
+    }
+    // ────────────────────────────────────────────────────
 
     const storeIds: string[] = [];
 
