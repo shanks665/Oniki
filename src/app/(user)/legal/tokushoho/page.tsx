@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "特定商取引法に基づく表記",
+  title: "特定商取引法に基づく表記 | BAR GUIDE",
 };
 
 export default function TokushohoPage() {
@@ -22,22 +22,26 @@ export default function TokushohoPage() {
       </h1>
 
       <div className="space-y-6">
-        <Row label="販売業者" value="【事業者名を記載】" />
-        <Row label="運営統括責任者" value="【代表者名を記載】" />
-        <Row label="所在地" value="【住所を記載】" />
-        <Row label="電話番号" value="【電話番号を記載】" />
-        <Row label="メールアドレス" value="【メールアドレスを記載】" />
+        <Row label="販売業者" value="BAR GUIDE" />
+        <Row label="運営統括責任者" value="鬼木我空" />
+        <Row label="所在地" value="熊本県熊本市中央区下通1丁目5-23" />
+        <Row label="電話番号" value="070-7632-8728" />
+        <Row label="メールアドレス" value="juchiyuki09@gmail.com" />
+        <Row label="サービスサイト" value="https://popular-guy-oniki.vercel.app/" />
+        <Row label="販売URL" value="https://popular-guy-oniki.vercel.app/login" />
         <Row
-          label="販売URL"
-          value={process.env.NEXT_PUBLIC_APP_URL || "https://barnavi-kumamoto.vercel.app"}
+          label="販売価格"
+          value="掲載プラン：月額5,000円（税込）／優先掲載プラン：月額10,000円（税込）"
         />
-        <Row label="販売価格" value="月額3,000円（税込）" />
         <Row
           label="商品代金以外の必要料金"
           value="なし（インターネット接続料金はお客様のご負担となります）"
         />
         <Row label="お支払い方法" value="クレジットカード（Stripe経由）" />
-        <Row label="お支払い時期" value="サブスクリプション契約時に即時決済。以降毎月自動更新。" />
+        <Row
+          label="お支払い時期"
+          value="サブスクリプション契約時に即時決済。以降毎月自動更新。"
+        />
         <Row
           label="サービス提供時期"
           value="お支払い手続き完了後、即時ご利用いただけます。"
@@ -55,10 +59,6 @@ export default function TokushohoPage() {
           value="最新版のChrome、Safari、Firefox、Edgeに対応しています。"
         />
       </div>
-
-      <p className="mt-10 text-xs text-zinc-600">
-        ※ 【】内は実際の情報に置き換えてください。
-      </p>
     </div>
   );
 }

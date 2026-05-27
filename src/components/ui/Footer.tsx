@@ -18,7 +18,7 @@ export function Footer() {
         <div className="mb-6 flex items-center gap-2">
           <Wine className="h-4 w-4 text-amber-500/50" />
           <span className="text-sm font-bold tracking-tight text-zinc-500">
-            BAR NAVI KUMAMOTO
+            BAR GUIDE KUMAMOTO
           </span>
         </div>
 
@@ -30,7 +30,7 @@ export function Footer() {
         </nav>
 
         <p className="text-[11px] text-zinc-700">
-          &copy; {new Date().getFullYear()} BAR NAVI KUMAMOTO. All rights
+          &copy; {new Date().getFullYear()} BAR GUIDE KUMAMOTO. All rights
           reserved.
         </p>
       </div>

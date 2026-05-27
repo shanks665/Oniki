@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  const serviceName = "BAR NAVI KUMAMOTO";
+  const serviceName = "BAR GUIDE";
   const operatorName = "【事業者名】";
 
   return (

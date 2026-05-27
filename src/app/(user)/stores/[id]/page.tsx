@@ -21,12 +21,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const store = await getStoreById(id);
 
   if (!store) {
-    return { title: "店舗が見つかりません | BAR NAVI KUMAMOTO" };
+    return { title: "店舗が見つかりません | BAR GUIDE" };
   }
 
   const areaLabel = AREAS[store.area as AreaKey] || store.area;
   const genreLabel = GENRES[store.genre as GenreKey] || store.genre;
-  const title = `${store.name} | ${areaLabel}の${genreLabel} | BAR NAVI KUMAMOTO`;
+  const title = `${store.name} | ${areaLabel}の${genreLabel} | BAR GUIDE`;
   const description =
     store.description ||
     `${store.name}は熊本・${areaLabel}にある${genreLabel}です。リアルタイムの空席状況をチェックして、今夜のお店を見つけよう。`;
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "website",
-      siteName: "BAR NAVI KUMAMOTO",
+      siteName: "BAR GUIDE",
       locale: "ja_JP",
       ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : {}),
     },

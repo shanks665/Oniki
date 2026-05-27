@@ -14,7 +14,7 @@ export function Header() {
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-[17px] font-extrabold tracking-tight text-amber-400">
-              BAR NAVI
+              BAR GUIDE
             </span>
             <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-semibold tracking-widest text-zinc-500">
               KUMAMOTO
