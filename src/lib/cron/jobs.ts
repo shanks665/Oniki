@@ -136,21 +136,27 @@ export async function runSyncSubscriptionsJob(): Promise<{
 
       const needsUpdate: Record<string, unknown> = {};
 
+      // Determine the tier from subscription metadata so priority subscribers
+      // are never silently downgraded to premium during a sync.
+      const subTier = sub.metadata?.tier === "priority" ? "priority" : "premium";
+
       if (sub.status === "canceled" || sub.status === "unpaid") {
         if (store.isActive !== false) needsUpdate.isActive = false;
         if (store.subscriptionStatus !== "canceled")
           needsUpdate.subscriptionStatus = "canceled";
       } else if (sub.status === "active") {
-        if (store.plan !== "premium") needsUpdate.plan = "premium";
+        if (store.plan !== subTier) needsUpdate.plan = subTier;
         if (store.subscriptionStatus !== "active")
           needsUpdate.subscriptionStatus = "active";
+        if (store.isActive !== true) needsUpdate.isActive = true;
       } else if (sub.status === "past_due") {
         if (store.subscriptionStatus !== "past_due")
           needsUpdate.subscriptionStatus = "past_due";
       } else if (sub.status === "trialing") {
-        if (store.plan !== "premium") needsUpdate.plan = "premium";
+        if (store.plan !== subTier) needsUpdate.plan = subTier;
         if (store.subscriptionStatus !== "trialing")
           needsUpdate.subscriptionStatus = "trialing";
+        if (store.isActive !== true) needsUpdate.isActive = true;
       }
 
       if (Object.keys(needsUpdate).length > 0) {

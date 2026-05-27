@@ -181,13 +181,19 @@ export async function POST(req: NextRequest) {
           const subscription = await stripe.subscriptions.retrieve(paidSubId);
           const storeId = subscription.metadata?.storeId;
           if (storeId) {
+            // Preserve the existing plan tier (premium or priority).
+            // Do NOT hard-code "premium" here — that would silently downgrade
+            // priority subscribers every time their invoice is paid.
+            const tier = (subscription.metadata?.tier === "priority") ? "priority" : "premium";
             batch.update(storeRef(storeId), {
-              plan: "premium",
+              plan: tier,
               subscriptionStatus: "active",
+              isActive: true,
             });
             batch.set(billingRef(storeId), { paymentFailedAt: null }, { merge: true });
             addHistory(batch, storeId, "payment_succeeded", {
               subscriptionId: paidSubId,
+              tier,
             });
             handled = true;
           }

@@ -34,18 +34,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (
-      (store.plan === tier) &&
-      store.subscriptionStatus !== "canceled" &&
-      store.isActive !== false
-    ) {
+    const billing = await getBilling(storeId);
+
+    // Block only when there is a real active Stripe subscription on this tier.
+    // Stores created by admin have plan="premium" but no Stripe subscription yet
+    // (stripeSubscriptionId is null), so they must be allowed to proceed.
+    const alreadySubscribed =
+      billing.stripeSubscriptionId &&
+      store.plan === tier &&
+      (store.subscriptionStatus === "active" || store.subscriptionStatus === "trialing");
+
+    if (alreadySubscribed) {
       return NextResponse.json(
         { error: "既にこのプランに加入中です" },
         { status: 400 }
       );
     }
-
-    const billing = await getBilling(storeId);
 
     const hasUsedTrial = !!(
       billing.stripeSubscriptionId ||
