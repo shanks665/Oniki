@@ -46,12 +46,21 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/admin/login");
-    }
+    if (authLoading || user) return;
+    // Delay redirect slightly so a transient null (tab resume / token refresh)
+    // doesn't kick the admin out before Firebase restores the session.
+    const t = setTimeout(() => router.replace("/admin/login"), 700);
+    return () => clearTimeout(t);
   }, [authLoading, user, router]);
 
   const uid = user?.uid;
+
+  // Reset local data state whenever the uid changes so the page never shows
+  // stale admin/store data from a previous session while new listeners load.
+  useEffect(() => {
+    setLoading(true);
+    setIsAdmin(false);
+  }, [uid]);
 
   useEffect(() => {
     if (!uid) return;

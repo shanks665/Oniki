@@ -48,18 +48,17 @@ export default function DashboardPage() {
     if (!authLoading && !user) router.replace("/login");
   }, [authLoading, user, router]);
 
-  // If auth is resolved, user is present, but no store found and no error →
-  // the account is stale (e.g. store was deleted after a re-seed). Sign out
-  // and redirect to login. A small delay prevents mis-firing on the brief
-  // null→user transition that can occur when Firebase restores from IndexedDB.
+  // If auth is resolved but there's no valid store (whether due to an error
+  // or no store linked to this account), sign out and redirect to login.
+  // This handles: first-time visitors, stale sessions after re-seed, wrong
+  // account (e.g. admin account used on store dashboard), etc.
   useEffect(() => {
-    if (authLoading || !user || store || authError) return;
+    if (authLoading || !user || store) return;
     const t = setTimeout(() => {
-      // Re-check inside the timeout in case state changed while waiting
       signOut().then(() => router.replace("/login"));
     }, 500);
     return () => clearTimeout(t);
-  }, [authLoading, user, store, authError, router]);
+  }, [authLoading, user, store, router]);
 
   useEffect(() => {
     if (store?.seatDetail && store?.seatCapacity) {
@@ -112,34 +111,9 @@ export default function DashboardPage() {
     router.replace("/login");
   };
 
-  if (authLoading) return <LoadingSpinner className="min-h-screen" />;
-  // No user → the redirect to /login is already in flight. Show a spinner
-  // instead of an error UI so it doesn't briefly flash on first paint.
-  if (!user) return <LoadingSpinner className="min-h-screen" />;
-  if (authError || !store) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
-        <div className="mb-4 rounded-2xl border border-red-500/20 bg-red-500/[0.06] p-6">
-          <p className="mb-2 text-[15px] font-bold text-red-400">店舗情報を取得できません</p>
-          <p className="text-[13px] text-zinc-400">{authError || "このアカウントに紐づく店舗が見つかりません"}</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => window.location.reload()}
-            className="rounded-xl bg-zinc-800 px-6 py-2.5 text-[13px] font-medium text-zinc-300 transition-colors hover:bg-zinc-700"
-          >
-            再試行
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="rounded-xl bg-zinc-800 px-6 py-2.5 text-[13px] font-medium text-red-400 transition-colors hover:bg-zinc-700"
-          >
-            ログアウト
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Show spinner while loading, while no user, or while store is not yet
+  // available (the sign-out / redirect is already scheduled in useEffect).
+  if (authLoading || !user || !store) return <LoadingSpinner className="min-h-screen" />;
 
   const hasSeatCapacity = store.seatCapacity && (store.seatCapacity.counterTotal > 0 || store.seatCapacity.tableTotal > 0);
 

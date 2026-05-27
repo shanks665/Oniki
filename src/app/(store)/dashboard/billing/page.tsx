@@ -65,17 +65,7 @@ export default function BillingPage() {
     }
   };
 
-  if (authLoading) return <LoadingSpinner className="min-h-screen" />;
-  if (!user) return <LoadingSpinner className="min-h-screen" />;
-  if (authError || !store) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-        <p className="mb-3 text-[15px] font-bold text-red-400">店舗情報を取得できません</p>
-        <p className="mb-4 text-[13px] text-zinc-500">{authError || "店舗が見つかりません"}</p>
-        <button onClick={() => window.location.reload()} className="rounded-xl bg-zinc-800 px-6 py-2.5 text-[13px] text-zinc-300 hover:bg-zinc-700">再試行</button>
-      </div>
-    );
-  }
+  if (authLoading || !user || !store) return <LoadingSpinner className="min-h-screen" />;
 
   const isActive = store.subscriptionStatus === "active" || store.subscriptionStatus === "trialing";
   const isPastDue = store.subscriptionStatus === "past_due";

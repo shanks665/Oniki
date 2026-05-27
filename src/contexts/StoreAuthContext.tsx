@@ -11,6 +11,7 @@ import {
 } from "react";
 import { type User } from "firebase/auth";
 import { onAuthChange } from "@/lib/firebase/auth";
+import { getClientAuth } from "@/lib/firebase/config";
 import type { Store } from "@/types";
 
 interface StoreAuthState {
@@ -87,25 +88,52 @@ export function StoreAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    let nullTimer: ReturnType<typeof setTimeout> | null = null;
+
     const unsubscribe = onAuthChange(async (u) => {
-      // Always set the user immediately so consumers see the latest auth state.
-      setUser(u);
-      userRef.current = u;
+      if (nullTimer) {
+        clearTimeout(nullTimer);
+        nullTimer = null;
+      }
+
       if (u) {
+        setUser(u);
+        userRef.current = u;
         // Keep loading=true until the store fetch finishes so pages never see
         // the transient state of (user!=null, store=null, loading=false).
         setLoading(true);
         await loadStore(u);
         if (!cancelled) setLoading(false);
       } else {
-        hasLoadedStoreRef.current = false;
-        setStore(null);
-        setError(null);
-        setLoading(false);
+        // Firebase can briefly emit null when a tab is resumed from suspension
+        // or when an ID token is being silently refreshed. Wait 600 ms and
+        // re-check before committing to the logged-out state.
+        nullTimer = setTimeout(() => {
+          if (cancelled) return;
+          const current = getClientAuth().currentUser;
+          if (current) {
+            // Still logged in — the null was transient; reload store data.
+            setUser(current);
+            userRef.current = current;
+            setLoading(true);
+            loadStore(current).then(() => {
+              if (!cancelled) setLoading(false);
+            });
+          } else {
+            hasLoadedStoreRef.current = false;
+            setUser(null);
+            userRef.current = null;
+            setStore(null);
+            setError(null);
+            setLoading(false);
+          }
+        }, 600);
       }
     });
+
     return () => {
       cancelled = true;
+      if (nullTimer) clearTimeout(nullTimer);
       unsubscribe();
     };
   }, [loadStore]);
