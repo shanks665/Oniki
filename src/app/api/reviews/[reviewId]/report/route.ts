@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { FieldValue } from "firebase-admin/firestore";
+import { deduplicateReport, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ reviewId: string }> }
 ) {
   try {
     const { reviewId } = await params;
 
-    if (!reviewId) {
+    if (!reviewId || typeof reviewId !== "string") {
       return NextResponse.json({ error: "reviewId is required" }, { status: 400 });
     }
 
@@ -27,9 +27,16 @@ export async function POST(
       return NextResponse.json({ error: "Review not available" }, { status: 400 });
     }
 
-    await ref.update({
-      reportCount: FieldValue.increment(1),
-    });
+    // Persistent dedup: one report per IP per review.
+    // This also atomically increments reportCount if allowed.
+    const ip = getClientIp(req);
+    const { allowed } = await deduplicateReport(ip, reviewId);
+
+    if (!allowed) {
+      // Return success so the UI doesn't show an error to the user,
+      // but don't double-count the report.
+      return NextResponse.json({ success: true });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

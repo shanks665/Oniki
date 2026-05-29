@@ -52,6 +52,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
 
+    // Prevent javascript: / data: URI injection in URL fields that are
+    // rendered as <a href> or <iframe src> in the user-facing store page.
+    const URL_FIELDS = ["googleMapsDirectionUrl", "googleMapsEmbedUrl"] as const;
+    for (const field of URL_FIELDS) {
+      if (field in sanitized) {
+        const val = sanitized[field];
+        if (val !== "" && (typeof val !== "string" || !val.startsWith("https://"))) {
+          return NextResponse.json(
+            { error: `${field} must be a valid https:// URL or empty` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // When seatCapacity changes, cap seatDetail to new maximums
     if (sanitized.seatCapacity) {
       const newCap = sanitized.seatCapacity as { counterTotal: number; tableTotal: number };

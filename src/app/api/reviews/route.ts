@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { checkReviewPostRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,16 @@ const MAX_BODY_LEN = 300;
 
 export async function POST(req: NextRequest) {
   try {
+    // Persistent (cross-instance) rate limit: 4 reviews per IP per hour
+    const ip = getClientIp(req);
+    const { allowed } = await checkReviewPostRateLimit(ip);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many reviews. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const { storeId, authorName, rating, body } = await req.json();
 
     if (!storeId || typeof storeId !== "string") {
