@@ -40,12 +40,12 @@ export async function GET(req: NextRequest) {
 
     // Run both reports in parallel
     const [dailyResponse, monthlyResponse] = await Promise.all([
-      // Daily unique users for the last 30 days
+      // Daily new users for the last 30 days
       client.runReport({
         property: `properties/${PROPERTY_ID}`,
         dateRanges: [{ startDate: "29daysAgo", endDate: "today" }],
         dimensions: [{ name: "date" }],
-        metrics: [{ name: "totalUsers" }],
+        metrics: [{ name: "newUsers" }],
         dimensionFilter: {
           filter: {
             fieldName: "pagePath",
@@ -54,12 +54,12 @@ export async function GET(req: NextRequest) {
         },
         orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
       }),
-      // Monthly unique users for the last 12 months
+      // Monthly new users for the last 12 months
       client.runReport({
         property: `properties/${PROPERTY_ID}`,
         dateRanges: [{ startDate: "365daysAgo", endDate: "today" }],
         dimensions: [{ name: "yearMonth" }],
-        metrics: [{ name: "totalUsers" }],
+        metrics: [{ name: "newUsers" }],
         dimensionFilter: {
           filter: {
             fieldName: "pagePath",
@@ -72,22 +72,22 @@ export async function GET(req: NextRequest) {
 
     const daily = (dailyResponse[0].rows ?? []).map((row) => ({
       date: row.dimensionValues?.[0].value ?? "",
-      users: Number(row.metricValues?.[0].value ?? 0),
+      newUsers: Number(row.metricValues?.[0].value ?? 0),
     }));
 
     const monthly = (monthlyResponse[0].rows ?? []).map((row) => ({
       month: row.dimensionValues?.[0].value ?? "", // "YYYYMM"
-      users: Number(row.metricValues?.[0].value ?? 0),
+      newUsers: Number(row.metricValues?.[0].value ?? 0),
     }));
 
     // Convenience totals
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const thisMonthStr = new Date().toISOString().slice(0, 7).replace(/-/g, "");
 
-    const todayUsers = daily.find((d) => d.date === todayStr)?.users ?? 0;
-    const thisMonthUsers = monthly.find((m) => m.month === thisMonthStr)?.users ?? 0;
+    const todayNewUsers = daily.find((d) => d.date === todayStr)?.newUsers ?? 0;
+    const thisMonthNewUsers = monthly.find((m) => m.month === thisMonthStr)?.newUsers ?? 0;
 
-    return NextResponse.json({ daily, monthly, todayUsers, thisMonthUsers });
+    return NextResponse.json({ daily, monthly, todayNewUsers, thisMonthNewUsers });
   } catch (error) {
     console.error("GET /api/analytics/store-stats error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

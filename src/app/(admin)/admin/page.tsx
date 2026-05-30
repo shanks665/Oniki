@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { collection, onSnapshot, query, doc, where, orderBy } from "firebase/firestore";
 import { getClientDb } from "@/lib/firebase/config";
-import { Crown, Store as StoreIcon, Flag, Trash2 } from "lucide-react";
+import { Crown, Store as StoreIcon, Flag, Trash2, TrendingUp } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,6 +36,11 @@ async function adminDeleteReview(token: string, reviewId: string): Promise<boole
 
 type Tab = "stores" | "reviews";
 
+interface AnalyticsMap {
+  today: Record<string, number>;
+  thisMonth: Record<string, number>;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -44,6 +49,7 @@ export default function AdminDashboard() {
   const [reportedReviews, setReportedReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [analytics, setAnalytics] = useState<AnalyticsMap | null>(null);
 
   useEffect(() => {
     if (authLoading || user) return;
@@ -122,6 +128,19 @@ export default function AdminDashboard() {
       reviewsUnsub();
     };
   }, [uid, router]);
+
+  // Fetch analytics once isAdmin is confirmed
+  useEffect(() => {
+    if (!isAdmin || !user) return;
+    user.getIdToken().then((token) =>
+      fetch("/api/admin/analytics", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((data) => { if (data.today) setAnalytics(data); })
+        .catch(() => {/* analytics unavailable */})
+    );
+  }, [isAdmin, user]);
 
   const handleToggleActive = useCallback(async (storeId: string, currentActive: boolean) => {
     if (!user) return;
@@ -226,7 +245,27 @@ export default function AdminDashboard() {
                   <StatusBadge status={store.status} size="sm" />
                 </div>
 
-                <div className="mt-3 flex items-center gap-2">
+                {analytics && (
+                  <div className="mt-3 flex items-center gap-3 rounded-xl bg-white/[0.02] px-3 py-2">
+                    <TrendingUp className="h-3 w-3 shrink-0 text-zinc-600" />
+                    <div className="flex gap-4 text-[11px]">
+                      <span className="text-zinc-500">
+                        今日{" "}
+                        <span className="font-bold text-zinc-300">
+                          {(analytics.today[store.id] ?? 0).toLocaleString()}人
+                        </span>
+                      </span>
+                      <span className="text-zinc-500">
+                        今月{" "}
+                        <span className="font-bold text-zinc-300">
+                          {(analytics.thisMonth[store.id] ?? 0).toLocaleString()}人
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-2 flex items-center gap-2">
                   <button
                     onClick={() => handleToggleActive(store.id, store.isActive)}
                     className={cn(
