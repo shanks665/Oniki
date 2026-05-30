@@ -11,6 +11,7 @@ import {
   Armchair,
   AlertCircle,
   ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -34,11 +35,17 @@ async function apiUpdateStatus(user: { getIdToken: () => Promise<string> }, stor
   }
 }
 
+interface StoreStats {
+  todayUsers: number;
+  thisMonthUsers: number;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, store, loading: authLoading, error: authError, refresh } = useStoreAuth();
   const viewerCount = useViewerCount(store?.id ?? "");
   const [updating, setUpdating] = useState(false);
+  const [stats, setStats] = useState<StoreStats | null>(null);
   const [seatDetail, setSeatDetail] = useState<SeatDetail>({
     counterAvailable: null,
     tableAvailable: null,
@@ -59,6 +66,21 @@ export default function DashboardPage() {
     }, 500);
     return () => clearTimeout(t);
   }, [authLoading, user, store, router]);
+
+  // Fetch GA4 stats once the store is loaded
+  useEffect(() => {
+    if (!store || !user) return;
+    user.getIdToken().then((token) =>
+      fetch(`/api/analytics/store-stats?storeId=${store.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.todayUsers !== undefined) setStats(data);
+        })
+        .catch(() => {/* analytics unavailable – silently skip */})
+    );
+  }, [store?.id, user]);
 
   useEffect(() => {
     if (store?.seatDetail && store?.seatCapacity) {
@@ -216,6 +238,35 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Analytics stats */}
+      {stats && (
+        <div className="mb-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-4">
+          <div className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-zinc-600 uppercase">
+            <TrendingUp className="h-3 w-3" />
+            ページ訪問者数（ユニーク）
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-white/[0.03] px-4 py-3 text-center">
+              <p className="mb-0.5 text-[11px] text-zinc-500">今日</p>
+              <p className="text-2xl font-extrabold tabular-nums text-zinc-100">
+                {stats.todayUsers.toLocaleString()}
+                <span className="ml-0.5 text-[13px] font-normal text-zinc-500">人</span>
+              </p>
+            </div>
+            <div className="rounded-xl bg-white/[0.03] px-4 py-3 text-center">
+              <p className="mb-0.5 text-[11px] text-zinc-500">今月</p>
+              <p className="text-2xl font-extrabold tabular-nums text-zinc-100">
+                {stats.thisMonthUsers.toLocaleString()}
+                <span className="ml-0.5 text-[13px] font-normal text-zinc-500">人</span>
+              </p>
+            </div>
+          </div>
+          <p className="mt-2 text-[10px] text-zinc-700 text-center">
+            同一端末からの複数アクセスは1人としてカウント
+          </p>
+        </div>
+      )}
 
       {/* Status buttons */}
       <div className="mb-5">
