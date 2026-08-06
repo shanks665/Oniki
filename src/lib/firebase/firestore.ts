@@ -15,7 +15,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { getClientDb } from "./config";
-import type { Store, Coupon, Review, StoreStatus, SeatDetail } from "@/types";
+import type { Store, Coupon, Review } from "@/types";
 
 const STORES_COLLECTION = "stores";
 const COUPONS_COLLECTION = "coupons";
@@ -74,32 +74,6 @@ export async function getStoreByOwnerId(
   if (snapshot.empty) return null;
   const d = snapshot.docs[0];
   return { id: d.id, ...d.data() } as Store;
-}
-
-export async function updateStoreStatus(
-  storeId: string,
-  status: StoreStatus,
-  seatDetail?: SeatDetail | null
-): Promise<void> {
-  const updates: Record<string, unknown> = {
-    status,
-    statusUpdatedAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-  };
-  if (seatDetail !== undefined) {
-    updates.seatDetail = seatDetail;
-  }
-  await updateDoc(doc(getClientDb(), STORES_COLLECTION, storeId), updates);
-}
-
-export async function updateStoreInfo(
-  storeId: string,
-  data: Partial<Omit<Store, "id" | "createdAt" | "ownerId">>
-): Promise<void> {
-  await updateDoc(doc(getClientDb(), STORES_COLLECTION, storeId), {
-    ...data,
-    updatedAt: Timestamp.now(),
-  });
 }
 
 export function subscribeToCoupons(

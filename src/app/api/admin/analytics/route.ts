@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import { verifyAuth } from "@/lib/api/auth";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { getTokyoCalendarDate } from "@/lib/analytics/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Analytics not configured" }, { status: 503 });
     }
 
-    // Admin-only endpoint
     const authResult = await verifyAuth(req);
     if ("error" in authResult) return authResult.error;
 
@@ -36,18 +36,15 @@ export async function GET(req: NextRequest) {
     }
 
     const client = getAnalyticsClient();
+    const { ymd, firstOfMonth } = getTokyoCalendarDate();
 
-    // Fetch today's and this month's new users per store page in two parallel reports.
-    // Using pagePath dimension lets us cover all stores in a single API call.
-    const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const firstOfMonth = todayStr.slice(0, 7) + "-01";
-
+    // totalUsers per store page (unique visitors), not property-wide newUsers
     const [todayRes, monthRes] = await Promise.all([
       client.runReport({
         property: `properties/${PROPERTY_ID}`,
-        dateRanges: [{ startDate: todayStr, endDate: todayStr }],
+        dateRanges: [{ startDate: ymd, endDate: ymd }],
         dimensions: [{ name: "pagePath" }],
-        metrics: [{ name: "newUsers" }],
+        metrics: [{ name: "totalUsers" }],
         dimensionFilter: {
           filter: {
             fieldName: "pagePath",
@@ -57,9 +54,9 @@ export async function GET(req: NextRequest) {
       }),
       client.runReport({
         property: `properties/${PROPERTY_ID}`,
-        dateRanges: [{ startDate: firstOfMonth, endDate: todayStr }],
+        dateRanges: [{ startDate: firstOfMonth, endDate: ymd }],
         dimensions: [{ name: "pagePath" }],
-        metrics: [{ name: "newUsers" }],
+        metrics: [{ name: "totalUsers" }],
         dimensionFilter: {
           filter: {
             fieldName: "pagePath",
@@ -69,17 +66,20 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // Aggregate by storeId (multiple pagePaths like /stores/x and /stores/x?foo may exist)
     const todayMap: Record<string, number> = {};
     for (const row of todayRes[0].rows ?? []) {
       const storeId = extractStoreId(row.dimensionValues?.[0].value ?? "");
-      if (storeId) todayMap[storeId] = (todayMap[storeId] ?? 0) + Number(row.metricValues?.[0].value ?? 0);
+      if (storeId) {
+        todayMap[storeId] = (todayMap[storeId] ?? 0) + Number(row.metricValues?.[0].value ?? 0);
+      }
     }
 
     const monthMap: Record<string, number> = {};
     for (const row of monthRes[0].rows ?? []) {
       const storeId = extractStoreId(row.dimensionValues?.[0].value ?? "");
-      if (storeId) monthMap[storeId] = (monthMap[storeId] ?? 0) + Number(row.metricValues?.[0].value ?? 0);
+      if (storeId) {
+        monthMap[storeId] = (monthMap[storeId] ?? 0) + Number(row.metricValues?.[0].value ?? 0);
+      }
     }
 
     return NextResponse.json({ today: todayMap, thisMonth: monthMap });

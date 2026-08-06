@@ -36,8 +36,8 @@ async function apiUpdateStatus(user: { getIdToken: () => Promise<string> }, stor
 }
 
 interface StoreStats {
-  todayNewUsers: number;
-  thisMonthNewUsers: number;
+  todayVisitors: number;
+  thisMonthVisitors: number;
 }
 
 export default function DashboardPage() {
@@ -76,7 +76,11 @@ export default function DashboardPage() {
       })
         .then((r) => r.json())
         .then((data) => {
-          if (data.todayNewUsers !== undefined) setStats(data);
+          const today = data.todayVisitors ?? data.todayNewUsers;
+          const month = data.thisMonthVisitors ?? data.thisMonthNewUsers;
+          if (today !== undefined && month !== undefined) {
+            setStats({ todayVisitors: Number(today), thisMonthVisitors: Number(month) });
+          }
         })
         .catch(() => {/* analytics unavailable – silently skip */})
     );
@@ -244,26 +248,26 @@ export default function DashboardPage() {
         <div className="mb-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-4">
           <div className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-zinc-600 uppercase">
             <TrendingUp className="h-3 w-3" />
-            新規訪問者数
+            店舗ページの訪問者数
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-white/[0.03] px-4 py-3 text-center">
               <p className="mb-0.5 text-[11px] text-zinc-500">今日</p>
               <p className="text-2xl font-extrabold tabular-nums text-zinc-100">
-                {stats.todayNewUsers.toLocaleString()}
+                {stats.todayVisitors.toLocaleString()}
                 <span className="ml-0.5 text-[13px] font-normal text-zinc-500">人</span>
               </p>
             </div>
             <div className="rounded-xl bg-white/[0.03] px-4 py-3 text-center">
               <p className="mb-0.5 text-[11px] text-zinc-500">今月</p>
               <p className="text-2xl font-extrabold tabular-nums text-zinc-100">
-                {stats.thisMonthNewUsers.toLocaleString()}
+                {stats.thisMonthVisitors.toLocaleString()}
                 <span className="ml-0.5 text-[13px] font-normal text-zinc-500">人</span>
               </p>
             </div>
           </div>
           <p className="mt-2 text-[10px] text-zinc-700 text-center">
-            初回訪問のみカウント（リピーターは除く）
+            この店舗ページを見た人数（Google Analytics・反映まで数時間かかることがあります）
           </p>
         </div>
       )}
