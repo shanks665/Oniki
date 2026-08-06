@@ -28,9 +28,10 @@ const nextConfig: NextConfig = {
             // GA4 (gtag) loads from googletagmanager; Stripe + Firebase also need script access
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.firebaseio.com https://www.googletagmanager.com https://www.google-analytics.com",
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://maps.googleapis.com https://maps.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com",
+            // New Firebase buckets use *.firebasestorage.app (not only firebasestorage.googleapis.com)
+            "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://*.firebasestorage.app https://maps.googleapis.com https://maps.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com",
             "font-src 'self'",
-            "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.stripe.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+            "connect-src 'self' https://*.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://*.firebaseio.com wss://*.firebaseio.com https://api.stripe.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
             "frame-src https://js.stripe.com https://www.google.com https://maps.google.com",
             "object-src 'none'",
             "base-uri 'self'",

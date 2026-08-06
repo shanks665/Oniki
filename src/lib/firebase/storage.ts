@@ -14,7 +14,11 @@ export async function uploadStoreImage(
   const extension = file.name.split(".").pop() || "jpg";
   const path = `stores/${storeId}/${Date.now()}_${index}.${extension}`;
   const storageRef = ref(getClientStorage(), path);
-  await uploadBytes(storageRef, file);
+  // Storage rules require contentType image/* — some browsers omit file.type
+  // (e.g. certain HEIC/Android picks), which would be rejected as octet-stream.
+  const contentType =
+    file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
+  await uploadBytes(storageRef, file, { contentType });
   return getDownloadURL(storageRef);
 }
 

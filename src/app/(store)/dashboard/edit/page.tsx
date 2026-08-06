@@ -84,8 +84,14 @@ export default function EditPage() {
       const file = e.target.files[0];
       const url = await uploadStoreImage(store.id, file, images.length);
       setImages((prev) => [...prev, url]);
-    } catch {
-      alert("画像のアップロードに失敗しました");
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(
+        msg.includes("storage/unauthorized") || msg.includes("Permission")
+          ? "画像のアップロード権限がありません。再ログインして試してください。"
+          : "画像のアップロードに失敗しました。別の画像形式（JPEG/PNG）でお試しください。"
+      );
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
