@@ -1,10 +1,12 @@
 import { initializeApp, getApps, cert, type App, type Credential } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { getStorage, type Storage } from "firebase-admin/storage";
 
 let _app: App | null = null;
 let _auth: Auth | null = null;
 let _db: Firestore | null = null;
+let _storage: Storage | null = null;
 
 /** Strip wrapping quotes / whitespace that Vercel or .env files sometimes add. */
 function env(key: string): string {
@@ -62,8 +64,12 @@ function getAdminApp(): App {
     return _app;
   }
 
+  const storageBucket =
+    env("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET") || env("FIREBASE_STORAGE_BUCKET");
+
   _app = initializeApp({
     credential: buildCredential(),
+    ...(storageBucket ? { storageBucket } : {}),
   });
   return _app;
 }
@@ -76,4 +82,9 @@ export function getAdminAuth(): Auth {
 export function getAdminDb(): Firestore {
   if (!_db) _db = getFirestore(getAdminApp());
   return _db;
+}
+
+export function getAdminStorage(): Storage {
+  if (!_storage) _storage = getStorage(getAdminApp());
+  return _storage;
 }

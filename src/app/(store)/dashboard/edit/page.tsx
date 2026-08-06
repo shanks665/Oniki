@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useStoreAuth } from "@/hooks/useStoreAuth";
-import { uploadStoreImage, deleteStoreImage } from "@/lib/firebase/storage";
 import { AREAS, GENRES, MAX_IMAGES } from "@/constants";
 import { cn } from "@/lib/utils";
 import type { AreaKey, GenreKey } from "@/types";
@@ -76,22 +75,32 @@ export default function EditPage() {
   const maxImages = MAX_IMAGES;
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!store || !e.target.files?.length) return;
+    if (!store || !user || !e.target.files?.length) return;
     if (images.length >= maxImages) return;
 
     setUploading(true);
     try {
       const file = e.target.files[0];
-      const url = await uploadStoreImage(store.id, file, images.length);
-      setImages((prev) => [...prev, url]);
+      const token = await user.getIdToken();
+      const form = new FormData();
+      form.append("storeId", store.id);
+      form.append("file", file);
+
+      const res = await fetch("/api/store/upload-image", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Upload failed (${res.status})`);
+      }
+      if (!data.url) throw new Error("Upload failed");
+      setImages((prev) => [...prev, data.url as string]);
     } catch (err) {
       console.error("Image upload failed:", err);
       const msg = err instanceof Error ? err.message : String(err);
-      alert(
-        msg.includes("storage/unauthorized") || msg.includes("Permission")
-          ? "画像のアップロード権限がありません。再ログインして試してください。"
-          : "画像のアップロードに失敗しました。別の画像形式（JPEG/PNG）でお試しください。"
-      );
+      alert(msg.includes("4MB") || msg.includes("5MB") ? msg : "画像のアップロードに失敗しました");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -99,9 +108,22 @@ export default function EditPage() {
   };
 
   const handleRemoveImage = async (index: number) => {
+    if (!store || !user) return;
     const url = images[index];
     setImages((prev) => prev.filter((_, i) => i !== index));
-    await deleteStoreImage(url);
+    try {
+      const token = await user.getIdToken();
+      await fetch("/api/store/delete-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ storeId: store.id, imageUrl: url }),
+      });
+    } catch {
+      // UI already updated; orphaned file is acceptable
+    }
   };
 
   const handleSave = async () => {
