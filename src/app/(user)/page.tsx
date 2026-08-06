@@ -3,7 +3,9 @@ import { getActiveStores, getAllActiveCoupons } from "@/lib/firebase/server-fire
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { TopPageClient } from "./TopPageClient";
 
-export const revalidate = 30;
+// Runtime render only — Admin SDK needs server secrets that may be
+// unavailable during `next build` on Vercel (runtime-only env vars).
+export const dynamic = "force-dynamic";
 
 export default async function TopPage() {
   const [stores, couponMap] = await Promise.all([

@@ -5,7 +5,7 @@ import { AREAS, GENRES } from "@/constants";
 import type { AreaKey, GenreKey } from "@/types";
 import { StoreDetailClient } from "./StoreDetailClient";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 /** Safe for `<script type="application/ld+json">` — HTML must not see a literal `</script>` inside the string. */
 function serializeJsonLd(value: unknown): string {

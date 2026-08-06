@@ -1,12 +1,17 @@
 import type { MetadataRoute } from "next";
 import { getAllActiveStoreIds } from "@/lib/firebase/server-firestore";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://barnavi-kumamoto.vercel.app";
 
-  const storeIds = await getAllActiveStoreIds();
+  let storeIds: string[] = [];
+  try {
+    storeIds = await getAllActiveStoreIds();
+  } catch (err) {
+    console.error("sitemap: failed to load store ids", err);
+  }
 
   const storePages: MetadataRoute.Sitemap = storeIds.map((id) => ({
     url: `${baseUrl}/stores/${id}`,
