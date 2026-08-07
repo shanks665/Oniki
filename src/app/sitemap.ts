@@ -4,7 +4,7 @@ import { getAllActiveStoreIds } from "@/lib/firebase/server-firestore";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://barnavi-kumamoto.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://barguide.jp";
 
   let storeIds: string[] = [];
   try {

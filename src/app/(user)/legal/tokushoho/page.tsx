@@ -27,8 +27,8 @@ export default function TokushohoPage() {
         <Row label="所在地" value="熊本県熊本市中央区下通1丁目5-23" />
         <Row label="電話番号" value="070-7632-8728" />
         <Row label="メールアドレス" value="juchiyuki09@gmail.com" />
-        <Row label="サービスサイト" value="https://popular-guy-oniki.vercel.app/" />
-        <Row label="販売URL" value="https://popular-guy-oniki.vercel.app/login" />
+        <Row label="サービスサイト" value="https://barguide.jp/" />
+        <Row label="販売URL" value="https://barguide.jp/login" />
         <Row
           label="販売価格"
           value="掲載プラン：月額5,000円（税込）／優先掲載プラン：月額10,000円（税込）"
