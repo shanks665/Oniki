@@ -11,6 +11,15 @@ export const metadata: Metadata = {
     "今から入れる熊本のバーをリアルタイムで探せるサイト。空席状況をチェックして、今夜のお店を見つけよう。",
   manifest: "/manifest.json",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  // Google Search Console ownership (HTML meta tag method).
+  // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION to the content= value only.
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
   openGraph: {
     title: "BAR GUIDE - 熊本のバー空席情報",
     description: "今から入れる熊本のバーをリアルタイムで探せる。空席状況がリアルタイムに更新。",
